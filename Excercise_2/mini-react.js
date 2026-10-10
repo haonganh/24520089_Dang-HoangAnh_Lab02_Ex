@@ -1,4 +1,21 @@
 const TEXT_ELEMENT = "TEXT_ELEMENT";
+const clickHandlers = new WeakMap();
+
+export function dispatchDelegatedClick(event) {
+  const root = event.currentTarget;
+  let element = event.target instanceof Element
+    ? event.target
+    : event.target?.parentElement;
+
+  while (element && element !== root) {
+    const handler = clickHandlers.get(element);
+    if (handler) {
+      handler(event);
+      return;
+    }
+    element = element.parentElement;
+  }
+}
 
 export function createTextElement(value) {
   if (typeof value !== "string" && typeof value !== "number") {
@@ -93,7 +110,10 @@ export function renderToDOM(vNode) {
         throw new TypeError(`Invalid event handler: ${originalName}`);
       }
 
-      element.addEventListener(originalName.slice(2).toLowerCase(), value);
+     if (originalName !== "onClick") {
+  throw new TypeError(`Unsupported delegated event: ${originalName}`);
+}
+clickHandlers.set(element, value);
       continue;
     }
 

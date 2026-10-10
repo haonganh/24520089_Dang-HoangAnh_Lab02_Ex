@@ -41,8 +41,20 @@ function TaskApp() {
     "main",
     { className: "app-container" },
     createElement("h2", null, `Tasks: ${tasks.length}`),
-    createElement("p", null, `Filter: ${filter}`)
+    createElement("p", null, `Filter: ${filter}`),
+    createElement(
+  "button",
+  {
+    type: "button",
+    onClick: () => updateTasks(previous => [
+      ...previous,
+      `Task ${previous.length + 1}`,
+    ]),
+  },
+  createElement("span", null, "Add task")
+)
   );
+  
 }
 
 renderApp(TaskApp, root);
@@ -66,3 +78,17 @@ if (
 }
 
 console.log("T3 PASS: independent hooks update and re-render.");
+
+console.log("T3 PASS: independent hooks update and re-render.");
+
+root.querySelector("button span").click();
+if (!root.textContent.includes("Tasks: 4")) {
+  throw new Error("Delegated nested click failed");
+}
+
+root.querySelector("button span").click();
+if (!root.textContent.includes("Tasks: 5")) {
+  throw new Error("Delegation failed after re-render");
+}
+
+console.log("T4 PASS: nested clicks work after re-render.");

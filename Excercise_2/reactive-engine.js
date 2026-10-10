@@ -1,7 +1,8 @@
-import { renderToDOM } from "./mini-react.js";
+import { renderToDOM, dispatchDelegatedClick } from "./mini-react.js";
 
 export function createHookEngine() {
   const stateStore = [];
+  const delegatedRoots = new WeakSet();
   let cursor = 0;
   let currentComponent = null;
   let root = null;
@@ -28,6 +29,11 @@ export function createHookEngine() {
     }
     if (rendering) {
       throw new Error("Cannot render recursively");
+    }
+
+    if (!delegatedRoots.has(target)) {
+      target.addEventListener("click", dispatchDelegatedClick);
+      delegatedRoots.add(target);
     }
 
     currentComponent = Component;
