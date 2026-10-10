@@ -1,0 +1,65 @@
+.app {
+  width: min(100% - 2rem, 640px);
+  margin: 3rem auto;
+  padding: 1.5rem;
+  text-align: left;
+}
+
+button {
+  min-height: 44px;
+  margin: 0.5rem 0.75rem 0.5rem 0;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 3px;
+}
+
+li {
+  margin: 0.75rem 0;
+}
+
+.skeleton {
+  height: 3rem;
+  margin: 0.75rem 0;
+  border-radius: 0.5rem;
+  background: #64748b;
+  animation: pulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  to { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+}
+
+:root {
+  color-scheme: light;
+  color: #1f2937;
+  background: #fff;
+}
+
+button {
+  color: #fff;
+  background: #1d4ed8;
+  border: 2px solid #1e40af;
+  border-radius: 0.375rem;
+  font: inherit;
+}
+
+button:hover {
+  background: #1e40af;
+}
+
+button:focus-visible {
+  outline: 3px solid #1e40af;
+  outline-offset: 3px;
+}
+
+[role="alert"] {
+  color: #991b1b;
+}
