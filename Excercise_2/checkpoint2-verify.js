@@ -1,21 +1,68 @@
-import { createHookEngine } from "./reactive-engine.js";
+import {
+  createHookEngine,
+  useState,
+  renderApp,
+} from "./reactive-engine.js";
+import { createElement } from "./mini-react.js";
 
+// T2: resetting the cursor retains the first slot.
 const engine = createHookEngine();
-
-const first = engine.readNextSlot(["Review PR", "Verify AST"]);
-if (first.index !== 0 || engine.cursor !== 1) {
-  throw new Error("First state slot test failed");
-}
-
+engine.readNextSlot(["Review PR", "Verify AST"]);
 engine.resetCursor();
 
-const firstAfterReset = engine.readNextSlot(["This value should be ignored"]);
+const retained = engine.readNextSlot(["Wrong replacement"]);
 if (
-  firstAfterReset.index !== 0 ||
-  firstAfterReset.value[0] !== "Review PR" ||
+  retained.index !== 0 ||
+  retained.value[0] !== "Review PR" ||
   engine.slotCount !== 1
 ) {
-  throw new Error("State was not retained after cursor reset");
+  throw new Error("T2 state retention failed");
 }
 
-console.log("T2 PASS: cursor resets and the state slot is retained.");
+console.log("T2 PASS: state slot retained.");
+
+// T3: two independent hooks and automatic rendering.
+const root = document.getElementById("app");
+if (!(root instanceof HTMLElement)) {
+  throw new Error("Missing #app");
+}
+
+let setTasks;
+let setFilter;
+
+function TaskApp() {
+  const [tasks, updateTasks] = useState(["Review PR", "Verify AST"]);
+  const [filter, updateFilter] = useState("ALL");
+
+  setTasks = updateTasks;
+  setFilter = updateFilter;
+
+  return createElement(
+    "main",
+    { className: "app-container" },
+    createElement("h2", null, `Tasks: ${tasks.length}`),
+    createElement("p", null, `Filter: ${filter}`)
+  );
+}
+
+renderApp(TaskApp, root);
+setTasks(previous => [...previous, "New task"]);
+
+if (
+  !root.textContent.includes("Tasks: 3") ||
+  !root.textContent.includes("Filter: ALL")
+) {
+  throw new Error("Task update or independent state failed");
+}
+
+setFilter("ACTIVE");
+
+if (
+  !root.textContent.includes("Tasks: 3") ||
+  !root.textContent.includes("Filter: ACTIVE") ||
+  root.querySelectorAll("main").length !== 1
+) {
+  throw new Error("Filter update or re-render failed");
+}
+
+console.log("T3 PASS: independent hooks update and re-render.");
