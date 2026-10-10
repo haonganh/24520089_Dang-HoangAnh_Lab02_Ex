@@ -59,3 +59,69 @@ export function createElement(type, props, ...children) {
     },
   };
 }
+
+export function renderToDOM(vNode) {
+  if (!isVNode(vNode)) {
+    throw new TypeError("renderToDOM expected a valid VNode");
+  }
+
+  if (vNode.type === "TEXT_ELEMENT") {
+    return document.createTextNode(vNode.props.nodeValue);
+  }
+
+  const element = document.createElement(vNode.type);
+  const booleanAttributes = new Set([
+    "disabled", "checked", "selected", "multiple", "required",
+    "readonly", "autofocus", "hidden",
+  ]);
+
+  for (const [originalName, value] of Object.entries(vNode.props)) {
+    if (
+      originalName === "children" ||
+      originalName === "key" ||
+      originalName === "nodeValue"
+    ) {
+      continue;
+    }
+
+    if (originalName === "dangerouslySetInnerHTML") {
+      throw new TypeError("Raw HTML is not supported");
+    }
+
+    if (/^on/i.test(originalName)) {
+      if (!/^on[A-Z]/.test(originalName) || typeof value !== "function") {
+        throw new TypeError(`Invalid event handler: ${originalName}`);
+      }
+
+      element.addEventListener(originalName.slice(2).toLowerCase(), value);
+      continue;
+    }
+
+    if (value === null || value === undefined) continue;
+    if (typeof value === "function") continue;
+
+    const name = originalName === "className" ? "class" : originalName;
+    const lowerName = name.toLowerCase();
+
+    if (booleanAttributes.has(lowerName)) {
+      if (value) element.setAttribute(name, "");
+      continue;
+    }
+
+    if (typeof value === "boolean" && !lowerName.startsWith("aria-")) {
+      continue;
+    }
+
+    if (typeof value === "object") {
+      throw new TypeError(`Unsupported object prop: ${originalName}`);
+    }
+
+    element.setAttribute(name, String(value));
+  }
+
+  for (const child of vNode.props.children) {
+    element.appendChild(renderToDOM(child));
+  }
+
+  return element;
+}

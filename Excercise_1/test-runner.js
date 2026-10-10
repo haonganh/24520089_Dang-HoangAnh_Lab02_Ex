@@ -1,33 +1,50 @@
-import {
-  createTextElement,
-  createElement,
-  isVNode,
-} from "./mini-react.js";
+import { createElement, renderToDOM } from "./mini-react.js";
 
 const root = document.getElementById("app");
+
 if (!(root instanceof HTMLElement)) {
   throw new Error("Missing mount container: #app");
 }
 
-const text = createTextElement("Hello World");
-const number = createTextElement(123);
-
 const app = createElement(
   "main",
-  { id: "root-view", role: "main" },
-  createElement("h1", null, "Mini React Engine"),
-  createElement("p", null, ["Safe Text", 123]),
-  createElement("button", { onClick: () => console.log("Ping") }, "Click")
+  { id: "root-view" },
+  createElement(
+    "header",
+    { className: "hero" },
+    createElement("h1", null, "Mini React Engine"),
+    createElement("p", null, "Safe text rendering demo")
+  ),
+  createElement(
+    "p",
+    null,
+    "<script>alert(1)</script>",
+    " ",
+    "<img onerror=alert(1)> Safe Text"
+  ),
+  createElement(
+    "button",
+    { type: "button", onClick: () => console.log("Ping") },
+    "Click"
+  )
 );
 
-if (text.props.nodeValue !== "Hello World") throw new Error("Text test failed");
-if (number.props.nodeValue !== "123") throw new Error("Number test failed");
-if (!isVNode(app) || app.props.children.length !== 3) {
-  throw new Error("VNode tree test failed");
-}
-if (isVNode({ type: "main", props: {} })) {
-  throw new Error("Malformed VNode was accepted");
+root.replaceChildren(renderToDOM(app));
+
+if (!(root.querySelector("button") instanceof HTMLButtonElement)) {
+  throw new Error("Button did not render");
 }
 
-console.log("T3 PASS: factories and VNode guard");
-console.log("VNode tree:", app);
+if (root.querySelector("script, img")) {
+  throw new Error("A test string became an HTML element");
+}
+
+if (!root.textContent.includes("<script>alert(1)</script>")) {
+  throw new Error("Script test string was not rendered as text");
+}
+
+if (!root.textContent.includes("<img onerror=alert(1)> Safe Text")) {
+  throw new Error("Image test string was not rendered as text");
+}
+
+console.log("T4 PASS: DOM rendered; both test strings stayed text.");
