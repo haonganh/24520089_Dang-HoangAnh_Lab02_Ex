@@ -1,4 +1,4 @@
-import { renderToDOM, dispatchDelegatedClick } from "./mini-react.js";
+\import { renderToDOM, dispatchDelegatedClick } from "./mini-react.js";
 
 export function createHookEngine() {
   const stateStore = [];
@@ -27,6 +27,7 @@ export function createHookEngine() {
     if (typeof Component !== "function" || !(target instanceof Element)) {
       throw new TypeError("renderApp needs a component and a root element");
     }
+
     if (rendering) {
       throw new Error("Cannot render recursively");
     }
@@ -35,6 +36,11 @@ export function createHookEngine() {
       target.addEventListener("click", dispatchDelegatedClick);
       delegatedRoots.add(target);
     }
+
+    const focusedElement = target.contains(document.activeElement)
+      ? document.activeElement
+      : null;
+    const focusKey = focusedElement?.getAttribute("data-focus-key");
 
     currentComponent = Component;
     root = target;
@@ -45,6 +51,14 @@ export function createHookEngine() {
       root.replaceChildren(renderToDOM(Component()));
     } finally {
       rendering = false;
+    }
+
+    if (focusKey) {
+      const matchingControl = [...root.querySelectorAll("[data-focus-key]")]
+        .find(element => element.getAttribute("data-focus-key") === focusKey);
+
+      const fallback = root.querySelector('[data-focus-key="add-task"]');
+      (matchingControl ?? fallback)?.focus();
     }
   }
 
